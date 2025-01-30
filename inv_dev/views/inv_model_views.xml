@@ -14,7 +14,7 @@
                         <footer>
                             <button string="Cancelar" class="btn-secondary" special="cancel"/>
                             <button string="Visualizar Etiqueta" type="object" name="create_and_generate_zpl" class="btn-primary" context="{'close_on_report_download': False}"/>
-                            <button string="Imprimir" type="object" name="print_zpl_label" class="btn-primary"/>
+                            <button string="Imprimir Etiqueta" type="object" name="print_zpl_label" class="btn-primary"/>
                         </footer>
                         <group>
                             <field name="zpl_content" readonly="1" nolabel="1" widget="text"/>
