@@ -1,10 +1,10 @@
 # Product Extension Module
 
-## Overview
+## Alcance del modulo
 
 Modulo extendido de modelo producto el cual genera etiquetas ZPL desplegandolas por pantalla para su impresion.
 
-## Models
+## Modelos 
 
 ### `product.codigo`
 - Manages product codes.
