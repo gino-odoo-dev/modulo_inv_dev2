@@ -29,24 +29,13 @@ class ProductExtensionWizard(models.TransientModel):
     id_codigo = fields.Many2one('product.codigo', string="Codigo", required=True)
     id_numero = fields.Many2one('product.numero', string="Numero", required=True)
     cantidad = fields.Float(string="Cantidad", default=0.0, required=True)
-    name = fields.Char(string="Nombre")
     zpl_content = fields.Text(string="ZPL Content", readonly=True)
-    active = fields.Boolean(string="Active", default=True)
-   
 
     @api.model
     def generate_zpl_label(self, vals):
-        if isinstance(vals, int):  
-            vals = {}
-
-        if isinstance(vals, models.BaseModel):
-            vals = vals.read()[0]
-        elif isinstance(vals, list):
-            vals = vals[0]
-
-        codigo = vals.get('id_codigo', 'Desconocido')  
-        numero = vals.get('id_numero', 'Desconocido') 
-        cantidad = vals.get('cantidad', 0.0)  
+        codigo = vals.get('id_codigo', 'Desconocido')
+        numero = vals.get('id_numero', 'Desconocido')
+        cantidad = vals.get('cantidad', 0.0)
 
         zpl = f"""
         ^XA
@@ -63,21 +52,27 @@ class ProductExtensionWizard(models.TransientModel):
         ^GB800,3,3^FS            
         ^XZ
         """
-        return zpl
+        return zpl.strip()
 
+    def create_and_generate_zpl(self):
+        vals = {
+            'id_codigo': self.id_codigo.id if self.id_codigo else '',
+            'id_numero': self.id_numero.id if self.id_numero else '',
+            'cantidad': self.cantidad
+        }
+        zpl = self.generate_zpl_label(vals)
+        
+        wizard = self.create({
+            'id_codigo': self.id_codigo.id,
+            'id_numero': self.id_numero.id,
+            'cantidad': self.cantidad,
+            'zpl_content': zpl
+        })
 
-    @api.model
-    def create_and_generate_zpl(self, vals):
-        if isinstance(vals, list):
-            vals = vals[0] 
-        if isinstance(vals, models.BaseModel):
-            vals = vals.read()[0] 
-        zpl = self.generate_zpl_label(vals) 
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'product.extension.wizard',
             'view_mode': 'form',
-            'view_type': 'form',
+            'res_id': wizard.id, 
             'target': 'new',
-            'context': {'default_zpl_content': zpl},
         }

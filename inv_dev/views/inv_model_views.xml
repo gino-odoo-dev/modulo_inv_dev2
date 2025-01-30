@@ -15,6 +15,9 @@
                             <button string="Cancelar" class="btn-secondary" special="cancel"/>
                             <button string="Visualizar Etiqueta" type="object" name="create_and_generate_zpl" class="btn-default" context="{'close_on_report_download': False}"/>
                         </footer>
+                        <group>
+                            <field name="zpl_content" readonly="1" nolabel="1" widget="text"/>
+                        </group>
                     </sheet>
                 </form>
             </field>
