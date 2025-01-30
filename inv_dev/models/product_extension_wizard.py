@@ -28,14 +28,16 @@ class ProductExtensionWizard(models.TransientModel):
 
     id_codigo = fields.Many2one('product.codigo', string="Codigo", required=True)
     id_numero = fields.Many2one('product.numero', string="Numero", required=True)
-    cantidad = fields.Float(string="Cantidad", default=0.0, required=True)
+    cantidad = fields.Integer(string="Cantidad", default=0.0, required=True)
     zpl_content = fields.Text(string="ZPL Content", readonly=True)
 
     @api.model
     def generate_zpl_label(self, vals):
-        codigo = vals.get('id_codigo', 'Desconocido')
-        numero = vals.get('id_numero', 'Desconocido')
-        cantidad = vals.get('cantidad', 0.0)
+        codigo_record = self.env['product.codigo'].browse(vals.get('id_codigo'))
+        numero_record = self.env['product.numero'].browse(vals.get('id_numero'))
+        codigo = codigo_record.name if codigo_record else 'Desconocido'
+        numero = numero_record.name if numero_record else 'Desconocido'
+        cantidad = vals.get('cantidad', 0)
 
         zpl = f"""
         ^XA
@@ -76,3 +78,7 @@ class ProductExtensionWizard(models.TransientModel):
             'res_id': wizard.id, 
             'target': 'new',
         }
+
+    def print_zpl_label(self):
+        _logger.info(f"Printing ZPL Label: {self.zpl_content}")
+        return True
