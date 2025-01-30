@@ -35,18 +35,21 @@ class ProductExtensionWizard(models.TransientModel):
     zpl_code_display = fields.Text(string="Código ZPL Display", readonly=True)
 
     _sql_constraints = [
-        ('id_codigo_unique', 'UNIQUE(id_codigo, active)', 'El codigo debe ser único.')
+        ('id_codigo_unique', 'UNIQUE(id_codigo)', 'El codigo debe ser único.')
     ]
 
     @api.model
     def create(self, vals):
         if not vals.get('name'):
             vals['name'] = 'Producto sin nombre'
+        vals['active'] = True
         return super(ProductExtensionWizard, self).create(vals)
 
     def write(self, vals):
         if 'name' not in vals and not self.name:
             vals['name'] = 'Producto sin nombre'
+        if 'active' not in vals:
+            vals['active'] = True
         return super(ProductExtensionWizard, self).write(vals)
         
     def generate_zpl_label(self):
@@ -66,8 +69,8 @@ class ProductExtensionWizard(models.TransientModel):
             ^GB800,3,3^FS            
             ^XZ
             """
-            record.zpl_code = zpl
-            record.zpl_code_display = zpl.replace('^', '\n^')
+            record.zpl_code = zpl.strip()
+            record.zpl_code_display = zpl.replace('^', '\n^').strip()
 
         return {
             'type': 'ir.actions.client',
@@ -77,4 +80,5 @@ class ProductExtensionWizard(models.TransientModel):
     def unlink(self):
         for record in self:
             record.active = False
-        return super(ProductExtensionWizard, self).unlink() 
+            record.write({'active': False})
+        return super(ProductExtensionWizard, self).unlink()
