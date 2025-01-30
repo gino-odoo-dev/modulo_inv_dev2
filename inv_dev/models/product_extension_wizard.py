@@ -29,56 +29,55 @@ class ProductExtensionWizard(models.TransientModel):
     id_codigo = fields.Many2one('product.codigo', string="Codigo", required=True)
     id_numero = fields.Many2one('product.numero', string="Numero", required=True)
     cantidad = fields.Float(string="Cantidad", default=0.0, required=True)
-    active = fields.Boolean(string='Active', default=True)
     name = fields.Char(string="Nombre")
-    zpl_code = fields.Text(string="Código ZPL", readonly=True)
-    zpl_code_display = fields.Text(string="Código ZPL Display", readonly=True)
-
-    _sql_constraints = [
-        ('id_codigo_unique', 'UNIQUE(id_codigo)', 'El codigo debe ser único.')
-    ]
+    zpl_content = fields.Text(string="ZPL Content", readonly=True)
+    active = fields.Boolean(string="Active", default=True)
+   
 
     @api.model
-    def create(self, vals):
-        if not vals.get('name'):
-            vals['name'] = 'Producto sin nombre'
-        vals['active'] = True
-        return super(ProductExtensionWizard, self).create(vals)
+    def generate_zpl_label(self, vals):
+        if isinstance(vals, int):  
+            vals = {}
 
-    def write(self, vals):
-        if 'name' not in vals and not self.name:
-            vals['name'] = 'Producto sin nombre'
-        if 'active' not in vals:
-            vals['active'] = True
-        return super(ProductExtensionWizard, self).write(vals)
-        
-    def generate_zpl_label(self):
-        for record in self:
-            zpl = f"""
-            ^XA
-            ^FO50,50 
-            ^B3N,N,100,Y,N
-            ^FD>: {record.id_codigo.name}^FS 
-            ^FO50,200
-            ^A0N,50,50
-            ^FDNumero: {record.id_numero.name}^FS  
-            ^FO50,300
-            ^A0N,50,50
-            ^FDCantidad: {record.cantidad}^FS
-            ^FO50,400
-            ^GB800,3,3^FS            
-            ^XZ
-            """
-            record.zpl_code = zpl.strip()
-            record.zpl_code_display = zpl.replace('^', '\n^').strip()
+        if isinstance(vals, models.BaseModel):
+            vals = vals.read()[0]
+        elif isinstance(vals, list):
+            vals = vals[0]
 
+        codigo = vals.get('id_codigo', 'Desconocido')  
+        numero = vals.get('id_numero', 'Desconocido') 
+        cantidad = vals.get('cantidad', 0.0)  
+
+        zpl = f"""
+        ^XA
+        ^FO50,50 
+        ^B3N,N,100,Y,N
+        ^FD>: {codigo}^FS 
+        ^FO50,200
+        ^A0N,50,50
+        ^FDNumero: {numero}^FS  
+        ^FO50,300
+        ^A0N,50,50
+        ^FDCantidad: {cantidad}^FS
+        ^FO50,400
+        ^GB800,3,3^FS            
+        ^XZ
+        """
+        return zpl
+
+
+    @api.model
+    def create_and_generate_zpl(self, vals):
+        if isinstance(vals, list):
+            vals = vals[0] 
+        if isinstance(vals, models.BaseModel):
+            vals = vals.read()[0] 
+        zpl = self.generate_zpl_label(vals) 
         return {
-            'type': 'ir.actions.client',
-            'tag': 'reload',
+            'type': 'ir.actions.act_window',
+            'res_model': 'product.extension.wizard',
+            'view_mode': 'form',
+            'view_type': 'form',
+            'target': 'new',
+            'context': {'default_zpl_content': zpl},
         }
-
-    def unlink(self):
-        for record in self:
-            record.active = False
-            record.write({'active': False})
-        return super(ProductExtensionWizard, self).unlink()
