@@ -11,6 +11,3 @@ inv_dev/
 
 └── security/
     └── ir.model.access.csv
-
-
-tengo el siguiente modelo 
