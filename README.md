@@ -7,16 +7,13 @@ Modulo extendido de modelo producto el cual genera etiquetas ZPL desplegandolas 
 ## Modelos 
 
 ### `product.codigo`
-- product.codigo.
 - Fields:
   - `name` (Char): Codigos de productos.
 
 ### `product.numero`
-- product.numero.
 - Fields:
   - `name` (Char): Numero de productos.
 
 ### `product.cantidad`
-- product.cantidads.
 - Fields:
-  - `name` (Float): Cantidad de productos.
+  - `name` (Integer): Cantidad de productos.

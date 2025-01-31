@@ -23,7 +23,7 @@ class Numero(models.Model):
 class Cantidad(models.Model):    
     _name = 'product.cantidad' 
     _description = 'Cantidad' 
-    # campo Float con valor defecto 0.0
+    # campo Float con valor defecto 0
     name = fields.Float(string="Cantidad", default=0.0)  
 
 # se define el modelo (wizard para la extension de productos)
