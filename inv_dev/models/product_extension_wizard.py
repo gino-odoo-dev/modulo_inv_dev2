@@ -9,15 +9,14 @@ class Codigo(models.Model):
     # nombre del modelo en odoo
     _name = 'product.codigo'  
     _description = 'Codigo'  
-    
-    name = fields.Char(string="Codigo")
+    name = fields.Char(string="Articulo")
 
 
 class Numero(models.Model):
-    _name = 'product.numero'  
-    _description = 'Numero'  
-    
-    name = fields.Char(string="Numero")  
+    _name = 'cl.product.tallas'  
+    _description = 'Tallas'   
+    name = fields.Char(string="Nro. Zapato")
+    company_id = fields.Many2one('res.company', string="Company") 
 
 
 class Cantidad(models.Model):    
@@ -26,14 +25,15 @@ class Cantidad(models.Model):
     # campo Float con valor defecto 0
     name = fields.Float(string="Cantidad", default=0.0)  
 
+
 # se define el modelo (wizard para la extension de productos)
 class ProductExtensionWizard(models.TransientModel):
     _name = 'product.extension.wizard'  
     _description = 'Product Extension Wizard'  
 
     id_codigo = fields.Many2one('product.codigo', string="Codigo", required=True)  
-    id_numero = fields.Many2one('product.numero', string="Numero", required=True)  
-    cantidad = fields.Integer(string="Cantidad", default=0.0, required=True)
+    id_numero = fields.Many2one('cl.product.tallas', string="Tallas", required=True)  
+    cantidad = fields.Integer(string="Cantidad", default=0, required=True)  # Fix default value
     # campo para almacenar el codigo zpl generado  
     zpl_content = fields.Text(string="ZPL Content", readonly=True)  
 
@@ -42,7 +42,7 @@ class ProductExtensionWizard(models.TransientModel):
     def generate_zpl_label(self, vals):
         # obtener los registros de los modelos
         codigo_record = self.env['product.codigo'].browse(vals.get('id_codigo'))
-        numero_record = self.env['product.numero'].browse(vals.get('id_numero'))
+        numero_record = self.env['cl.product.tallas'].browse(vals.get('id_numero'))
 
         # extraer los valores de los registros o asignar 'Desconocido' si no existen
         codigo = codigo_record.name if codigo_record else 'Desconocido'
@@ -52,17 +52,27 @@ class ProductExtensionWizard(models.TransientModel):
         # definir el contenido en formato zpl
         zpl = f"""
         ^XA
-        ^FO50,50 
-        ^B3N,N,100,Y,N
-        ^FD>: {codigo}^FS 
-        ^FO50,200
-        ^A0N,50,50
-        ^FDNumero: {numero}^FS  
-        ^FO50,300
-        ^A0N,50,50
-        ^FDCantidad: {cantidad}^FS
-        ^FO50,400
-        ^GB800,3,3^FS            
+        ^FX
+        ^CF0,50
+        ^FX
+        ^FO90,40^FD
+        {color}
+        ^FS
+        ^FX
+        ^LRY
+        ^FO290,20^GB290,90,90^FS
+        ^CF0,90 ^FX
+        ^FO340,30^FD
+        {numero}
+        ^FS
+        ^FX
+        ^BY2,3,,^FO110,123^BCN,80,N,N,N^FD
+        {codigo}
+        ^FS
+        ^FX SKU.
+        ^FO160,210^A0N,30,40^FD
+        {codigo}
+        ^FS
         ^XZ
         """
         # retornar el ZPL sin espacios en blanco
@@ -99,8 +109,21 @@ class ProductExtensionWizard(models.TransientModel):
 
     # metodo para imprimir la etiqueta
     def print_zpl_label(self):
-        # se registra en el log el contenido de la etiqueta (para ver su contenido por consola)
+        # se registra en el log el contenido de la etiqueta para ver su contenido por consola
         _logger.info(f"Printing ZPL Label: {self.zpl_content}")
+        
+        printer_ips = ["10.10.1.16", "10.10.1.17", "10.10.1.18"]
+        
+        for printer_ip in printer_ips:
+            _logger.info(f"Sending ZPL to printer at IP: {printer_ip}")
+            try:
+                import socket
+                # Crear un socket de conexión
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.connect((printer_ip, 9100))  # puerto 9100 puerto estandar 
+                    s.sendall(self.zpl_content.encode('utf-8'))
+                    _logger.info(f"ZPL sent to printer at IP: {printer_ip}")
+            except Exception as e:
+                _logger.error(f"Failed to send ZPL to printer at IP: {printer_ip} - {e}")
         # se retorna True indicando que el proceso finalizo correctamente  
-        return True  
-
+        return True

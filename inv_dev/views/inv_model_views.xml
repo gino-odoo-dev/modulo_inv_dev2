@@ -4,7 +4,7 @@
             <field name="name">product.extension.form.zpl</field>
             <field name="model">product.extension.wizard</field>
             <field name="arch" type="xml">
-                <form string="Generar Etiqueta ZPL">
+                <form string="Generar Etiqueta">
                     <sheet>
                         <group>
                             <field name="id_codigo"/>
