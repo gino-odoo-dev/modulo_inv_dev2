@@ -12,18 +12,18 @@ class Codigo(models.Model):
     name = fields.Char(string="Articulo")
 
 
-class Numero(models.Model):
-    _name = 'cl.product.tallas'  
-    _description = 'Tallas'   
-    name = fields.Char(string="Nro. Zapato")
-    company_id = fields.Many2one('res.company', string="Company") 
-
-
 class Cantidad(models.Model):    
     _name = 'product.cantidad' 
     _description = 'Cantidad' 
     # campo Float con valor defecto 0
     name = fields.Float(string="Cantidad", default=0.0)  
+
+
+class Numero(models.Model):
+    _name = 'cl.product.tallas'  
+    _description = 'Tallas'   
+    name = fields.Char(string="Nro. Zapato")
+    company_id = fields.Many2one('res.company', string="Company") 
 
 
 # se define el modelo (wizard para la extension de productos)
@@ -56,7 +56,7 @@ class ProductExtensionWizard(models.TransientModel):
         ^CF0,50
         ^FX
         ^FO90,40^FD
-        {color}
+        {numero}
         ^FS
         ^FX
         ^LRY
@@ -109,21 +109,22 @@ class ProductExtensionWizard(models.TransientModel):
 
     # metodo para imprimir la etiqueta
     def print_zpl_label(self):
-        # se registra en el log el contenido de la etiqueta para ver su contenido por consola
-        _logger.info(f"Printing ZPL Label: {self.zpl_content}")
+        printer_ip = "10.10.1.252"  # IP address of the network printer
+        printer_port = 9100  # Common port for network printers
+        zpl_content = self.zpl_content
+
+        _logger.info(f"Printing ZPL Label on printer at {printer_ip}:{printer_port}:")
+        _logger.info(zpl_content)
         
-        printer_ips = ["10.10.1.16", "10.10.1.17", "10.10.1.18"]
-        
-        for printer_ip in printer_ips:
-            _logger.info(f"Sending ZPL to printer at IP: {printer_ip}")
-            try:
-                import socket
-                # Crear un socket de conexión
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.connect((printer_ip, 9100))  # puerto 9100 puerto estandar 
-                    s.sendall(self.zpl_content.encode('utf-8'))
-                    _logger.info(f"ZPL sent to printer at IP: {printer_ip}")
-            except Exception as e:
-                _logger.error(f"Failed to send ZPL to printer at IP: {printer_ip} - {e}")
-        # se retorna True indicando que el proceso finalizo correctamente  
-        return True
+        try:
+            import socket
+            # Create a socket connection to the printer
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.connect((printer_ip, printer_port))
+                s.sendall(zpl_content.encode('utf-8'))
+            
+            _logger.info(f"ZPL sent to printer at {printer_ip}:{printer_port}")
+            return True
+        except Exception as e:
+            _logger.error(f"Error printing to {printer_ip}:{printer_port}: {e}")
+            return False
