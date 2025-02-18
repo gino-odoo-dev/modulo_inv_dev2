@@ -13,11 +13,15 @@
                         </group>
                         <footer>
                             <button string="Cancelar" class="btn-secondary" special="cancel"/>
-                            <button string="Visualizar Etiqueta" type="object" name="create_and_generate_zpl" class="btn-primary" context="{'close_on_report_download': False}"/>
-                            <button string="Imprimir Etiqueta" type="object" name="print_zpl_label" class="btn-primary"/>
+                            <button string="Visualizar codigo ZPL" type="object" name="create_and_generate_zpl" class="btn-primary"/>
+                            <button string="Generar PDF" type="object" name="generate_pdf_from_zpl" class="btn-success"/>
                         </footer>
                         <group>
                             <field name="zpl_content" readonly="1" nolabel="1" widget="text"/>
+                        </group>
+                        <group>
+                            <field name="pdf_file" readonly="1" invisible="1"/>
+                            <field name="pdf_filename" readonly="1" invisible="1"/>
                         </group>
                     </sheet>
                 </form>
