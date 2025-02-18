@@ -1,8 +1,8 @@
-# Product Extension Module
+# Modulo impresion de etiquetas
 
 ## Alcance del modulo
 
-Modulo extendido de modelo producto el cual genera etiquetas ZPL desplegandolas por pantalla para su impresion.
+Modulo extendido de modelo producto el cual genera etiquetas ZPL descargandolas en formato PDF para su impresion.
 
 ## Modelos 
 
@@ -17,3 +17,18 @@ Modulo extendido de modelo producto el cual genera etiquetas ZPL desplegandolas 
 ### `product.cantidad`
 - Fields:
   - `name` (Integer): Cantidad de productos.
+
+### `pdf_file`
+- Fields:
+  - `name` (Binary): Etiqueta en PDF.
+
+### `pdf_filename`
+- Fields:
+  - `name` (Char): Nombre del Archivo.
+
+_________________________________________________
+
+### `Funciones`
+
+  - `Funcion` (generate_zpl_label)
+  - `Funcion` (generate_pdf_from_zpl)
