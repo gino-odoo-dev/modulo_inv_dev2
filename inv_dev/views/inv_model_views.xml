@@ -7,9 +7,11 @@
                 <form string="Generar Etiqueta">
                     <sheet>
                         <group>
+                            <field name="zpl_format"/>
                             <field name="id_codigo"/>
                             <field name="id_numero"/>
                             <field name="cantidad"/>
+                            <field name="zpl_format"/>
                         </group>
                         <footer>
                             <button string="Cancelar" class="btn-secondary" special="cancel"/>

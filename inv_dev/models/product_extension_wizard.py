@@ -34,28 +34,71 @@ class ProductExtensionWizard(models.TransientModel):
     cantidad = fields.Integer(string="Cantidad", default=0, required=True)
     pdf_file = fields.Binary(string="Etiqueta en PDF", readonly=True)
     pdf_filename = fields.Char(string="Nombre del Archivo")
+    
+    zpl_format = fields.Selection([
+        ('format1', 'Formato 1'),
+        ('format2', 'Formato 2'),
+        ('format3', 'Formato 3'),
+    ], string="Formato Etiqueta", default='format1', required=True)
 
     def generate_zpl_label(self):
         codigo = self.id_codigo.name if self.id_codigo else 'Desconocido'
         numero = self.id_numero.name if self.id_numero else 'Desconocido'
         cantidad = self.cantidad
 
-        zpl = """
-        ^XA
-        ^FO50,50
-        ^A0N,40,40
-        ^FDNumero: {numero}^FS
-        ^FO50,110
-        ^A0N,40,40
-        ^FDCodigo: {codigo}^FS
-        ^FO50,170
-        ^A0N,40,40
-        ^FDCantidad: {cantidad}^FS
-        ^FO50,230
-        ^B3N,N,100,Y,N
-        ^FD>: {codigo}^FS
-        ^XZ
-        """.format(numero=numero, codigo=codigo, cantidad=cantidad)
+        if self.zpl_format == 'format1':
+            zpl = """
+            ^XA
+            ^FO50,50
+            ^A0N,40,40
+            ^FDNumero: {numero}^FS
+            ^FO50,110
+            ^A0N,40,40
+            ^FDCodigo: {codigo}^FS
+            ^FO50,170
+            ^A0N,40,40
+            ^FDCantidad: {cantidad}^FS
+            ^FO50,230
+            ^B3N,N,100,Y,N
+            ^FD>: {codigo}^FS
+            ^XZ
+            """.format(numero=numero, codigo=codigo, cantidad=cantidad)
+        elif self.zpl_format == 'format2':
+            zpl = """
+            ^XA
+            ^FO50,50
+            ^A0N,40,40
+            ^FDFormato 2: {numero}^FS
+            ^FO50,110
+            ^A0N,40,40
+            ^FDCodigo: {codigo}^FS
+            ^FO50,170
+            ^A0N,40,40
+            ^FDCantidad: {cantidad}^FS
+            ^FO50,230
+            ^B3N,N,100,Y,N
+            ^FD>: {codigo}^FS
+            ^XZ
+            """.format(numero=numero, codigo=codigo, cantidad=cantidad)
+        elif self.zpl_format == 'format3':
+            zpl = """
+            ^XA
+            ^FO50,50
+            ^A0N,40,40
+            ^FDFormato 3: {numero}^FS
+            ^FO50,110
+            ^A0N,40,40
+            ^FDCodigo: {codigo}^FS
+            ^FO50,170
+            ^A0N,40,40
+            ^FDCantidad: {cantidad}^FS
+            ^FO50,230
+            ^B3N,N,100,Y,N
+            ^FD>: {codigo}^FS
+            ^XZ
+            """.format(numero=numero, codigo=codigo, cantidad=cantidad)
+        else:
+            zpl = ""
 
         return zpl.strip()
 
@@ -84,3 +127,4 @@ class ProductExtensionWizard(models.TransientModel):
             }
         else:
             raise UserError(_("Error al generar el PDF: %s") % response.text)
+        
