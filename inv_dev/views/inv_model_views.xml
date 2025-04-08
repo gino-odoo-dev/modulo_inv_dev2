@@ -9,7 +9,7 @@
                         <group>
                             <field name="zpl_format" style="width: 40%;"/>
                             <field name="id_codigo" style="width: 40%;"/>
-                            <field name="id_numero" style="width: 40%;"/>
+                            <field name="id_numeracion" style="width: 40%;"/>
                             <field name="cantidad" style="width: 40%;"/>
                         </group>
                         <footer>

@@ -1,4 +1,4 @@
-from odoo import models, fields, api, _
+from odoo import models, fields, _
 import logging
 import requests
 import base64
@@ -8,53 +8,51 @@ _logger = logging.getLogger(__name__)
 
 class Codigo(models.Model):
     _name = 'product.codigo'
-    _description = 'Código'
-    name = fields.Char(string="Artículo")
-
+    _description = 'Código de Producto'
+    name = fields.Char(string="Artículo", required=True)
 
 class Cantidad(models.Model):
     _name = 'product.cantidad'
-    _description = 'Cantidad'
+    _description = 'Cantidad de Producto'
     name = fields.Float(string="Cantidad", default=0.0)
 
+class Numeracion(models.Model):
+    _name = 'cl.product.numeracion'  
+    _description = 'Numeracion de Productos'
+    _rec_name = "numero" 
 
-class Numero(models.Model):
-    _name = 'cl.product.tallas'
-    _description = 'Tallas'
-    name = fields.Char(string="Nro. Zapato")
-    company_id = fields.Many2one('res.company', string="Compañía")
-
+    name = fields.Char(string="Nombre")
+    numero = fields.Integer(string="Numero de Talla", required=True)
 
 class ProductExtensionWizard(models.TransientModel):
     _name = 'product.extension.wizard'
-    _description = 'Product Extension Wizard'
+    _description = 'Asistente de Etiquetas para Productos'
 
     id_codigo = fields.Many2one('product.codigo', string="Código", required=True)
-    id_numero = fields.Many2one('cl.product.tallas', string="Tallas", required=True)
+    id_numeracion = fields.Many2one('cl.product.numeracion', string="Numeración", required=True) 
     cantidad = fields.Integer(string="Cantidad", default=0, required=True)
-    pdf_file = fields.Binary(string="Etiqueta en PDF", readonly=True)
+    pdf_file = fields.Binary(string="PDF de Etiqueta", readonly=True)
     pdf_filename = fields.Char(string="Nombre del Archivo")
     
-    zpl_format = fields.Selection([
-        ('format1', 'Formato 1'),
-        ('format2', 'Formato 2'),
-        ('format3', 'Formato 3'),
-    ], string="Formato Etiqueta", default='format1', required=True)
+    zpl_format = fields.Selection(
+        selection=[
+            ('format1', 'Formato 1'),
+            ('format2', 'Formato 2'),
+            ('format3', 'Formato 3'),
+        ],
+        string="Formato de Etiqueta",
+        default='format1',
+        required=True
+    )
 
     def generate_zpl_label(self):
         codigo = self.id_codigo.name if self.id_codigo else 'Desconocido'
-        numero = self.id_numero.name if self.id_numero else 'Desconocido'
+        numeracion = self.id_numeracion.name if self.id_numeracion else 'Desconocido'
         cantidad = self.cantidad
 
         if self.zpl_format == 'format1':
             zpl = """
-            ^XA
-            ^FO50,50
-            ^A0N,40,40
-            ^FDNumero: {numero}^FS
-            ^FO50,110
-            ^A0N,40,40
-            ^FDCodigo: {codigo}^FS
+            ^XA         
             ^FO50,170
             ^A0N,40,40
             ^FDCantidad: {cantidad}^FS
@@ -62,13 +60,13 @@ class ProductExtensionWizard(models.TransientModel):
             ^B3N,N,100,Y,N
             ^FD>: {codigo}^FS
             ^XZ
-            """.format(numero=numero, codigo=codigo, cantidad=cantidad)
+            """.format(numeracion=numeracion, codigo=codigo, cantidad=cantidad)
         elif self.zpl_format == 'format2':
             zpl = """
             ^XA
             ^FO50,50
             ^A0N,40,40
-            ^FDFormato 2: {numero}^FS
+            ^FDFormato 2: {numeracion}^FS
             ^FO50,110
             ^A0N,40,40
             ^FDCodigo: {codigo}^FS
@@ -79,13 +77,13 @@ class ProductExtensionWizard(models.TransientModel):
             ^B3N,N,100,Y,N
             ^FD>: {codigo}^FS
             ^XZ
-            """.format(numero=numero, codigo=codigo, cantidad=cantidad)
+            """.format(numeracion=numeracion, codigo=codigo, cantidad=cantidad)
         elif self.zpl_format == 'format3':
             zpl = """
             ^XA
             ^FO50,50
             ^A0N,40,40
-            ^FDFormato 3: {numero}^FS
+            ^FDFormato 3: {numeracion}^FS
             ^FO50,110
             ^A0N,40,40
             ^FDCodigo: {codigo}^FS
@@ -96,7 +94,7 @@ class ProductExtensionWizard(models.TransientModel):
             ^B3N,N,100,Y,N
             ^FD>: {codigo}^FS
             ^XZ
-            """.format(numero=numero, codigo=codigo, cantidad=cantidad)
+            """.format(numeracion=numeracion, codigo=codigo, cantidad=cantidad)
         else:
             zpl = ""
 
@@ -113,7 +111,7 @@ class ProductExtensionWizard(models.TransientModel):
 
         if response.status_code == 200:
             pdf_content = base64.b64encode(response.content)
-            pdf_filename = f"Etiqueta_{self.id_codigo.name}_{self.id_numero.name}.pdf"
+            pdf_filename = f"Etiqueta_{self.id_codigo.name}_{self.id_numeracion.name}.pdf"
 
             self.write({
                 'pdf_file': pdf_content,
@@ -126,5 +124,6 @@ class ProductExtensionWizard(models.TransientModel):
                 'target': 'self',
             }
         else:
-            raise UserError(_("Error al generar el PDF: %s") % response.text)
+            raise UserError(_("Error al generar el PDF: %s") % response.text)       
+
         
