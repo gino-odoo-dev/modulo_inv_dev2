@@ -1,0 +1,41 @@
+<odoo>
+    <data>
+        <!-- Vista del formulario -->
+        <record id="view_product_wizard_form" model="ir.ui.view">
+            <field name="name">product.wizard.form</field>
+            <field name="model">product.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Generar Etiqueta">
+                    <sheet>
+                        <group>
+                            <field name="zpl_format" widget="selection" string="Formato de Etiqueta" class="my_custom_width"/>
+                            <field name="codigo" string="Codigo" invisible="not (zpl_format == 'format1' or zpl_format == 'format2')" required="1" class="my_custom_width"/>
+                            <field name="numeracion" string="Numeracion" invisible="not (zpl_format == 'format2' or zpl_format == 'format3')" required="1" class="my_custom_width"/>
+                            <field name="cantidad" string="Cantidad" required="1" class="my_custom_width"/>
+                        </group>
+                        <footer>
+                            <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                            <button string="Generar PDF" type="object" name="generate_pdf_from_zpl" class="btn-primary"/>
+                        </footer>
+                        <group>
+                            <field name="pdf_file" invisible="1"/>
+                            <field name="pdf_filename" invisible="1"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="action_product_wizard" model="ir.actions.act_window">
+            <field name="name">Generar Etiqueta</field>
+            <field name="res_model">product.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_product_wizard_form"/>
+            <field name="target">new</field>
+        </record>
+        <menuitem id="menu_product_wizard" 
+                 name="Generar Etiqueta" 
+                 parent="stock.menu_stock_root" 
+                 action="action_product_wizard" 
+                 sequence="25"/>
+    </data>
+</odoo>

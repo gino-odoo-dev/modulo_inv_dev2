@@ -1,0 +1,18 @@
+etiqueta_zpl/
+├── __init__.py
+├── __manifest__.py
+├── models/
+│       └── __init__.py
+│       └── etiqueta.py
+├── views/
+│       └── etiqueta_zpl_views.xml
+├── security/
+│       └── ir.model.access.csv
+│
+└── static/
+        └── src
+            ├── css
+            │   └── style.css
+            └── js
+                └── dynamic_fields.js
+
