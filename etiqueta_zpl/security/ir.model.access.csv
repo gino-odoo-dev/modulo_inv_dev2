@@ -2,4 +2,6 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_product_codigo,product.codigo.access,model_product_codigo,,1,1,1,1
 access_product_cantidad,product.cantidad.access,model_product_cantidad,,1,1,1,1
 access_cl_product_numeracion,cl.product.numeracion.access,model_cl_product_numeracion,,1,1,1,1
-access_product_extension_wizard,product.extension.wizard.access,model_product_extension_wizard,,1,1,1,1
+access_product_wizard,product.wizard.access,model_product_wizard,,1,1,1,1
+
+
