@@ -8,10 +8,13 @@
                 <form string="Generar Etiqueta">
                     <sheet>
                         <group>
-                            <field name="zpl_format" widget="selection" string="Formato de Etiqueta" class="my_custom_width"/>
-                            <field name="codigo" string="Codigo" invisible="not (zpl_format == 'format1' or zpl_format == 'format2')" required="1" class="my_custom_width"/>
-                            <field name="numeracion" string="Numeracion" invisible="not (zpl_format == 'format2' or zpl_format == 'format3')" required="1" class="my_custom_width"/>
-                            <field name="cantidad" string="Cantidad" required="1" class="my_custom_width"/>
+                            <field name="zpl_format" widget="selection" string="Formato de Etiqueta" class="my_custom_width"/>                                       
+                            <field name="codigo" string="Articulo" required="1" class="my_custom_width" 
+                                   invisible="not (zpl_format == 'format1' or zpl_format == 'format3')"/>
+                            <field name="numeracion" string="Nro Zapato" required="1" class="my_custom_width" 
+                                   invisible="not (zpl_format == 'format2' or zpl_format == 'format3')"/>
+                            <field name="cantidad" string="Cantidad" required="1" class="my_custom_width" 
+                                   invisible="zpl_format != 'format3'"/>
                         </group>
                         <footer>
                             <button string="Cancelar" class="btn-secondary" special="cancel"/>

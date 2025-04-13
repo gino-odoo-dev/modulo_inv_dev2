@@ -7,30 +7,56 @@ import base64
 _logger = logging.getLogger(__name__)
 
 class Codigo(models.Model):
-    _name = 'product.codigo'
+    _inherit = 'product.template' 
     _description = 'Código de Producto'
-    name = fields.Char(string="Artículo", required=True)
+    _order = 'id asc'
+    
+    cl_long_model = fields.Char(string="Código Largo", required=True)
+    cl_short_model = fields.Char(string="Código Corto", required=True)
+    
+    @api.depends('cl_long_model')
+    def _compute_display_name(self):
+        for record in self:
+            record.display_name = record.cl_long_model or 'Nuevo Producto'
+
+    @api.depends('cl_short_model')
+    def _compute_display_name_short(self):
+        for record in self:
+            record.display_name_short = record.cl_short_model or 'Nuevo Producto Corto'
 
 class Numeracion(models.Model):
-    _name = 'cl.product.numeracion'  
+    _name = 'cl.product.numeraciones'
     _description = 'Numeración de Productos'
-    _rec_name = "numero" 
+    _order = 'id asc'
 
-    name = fields.Char(string="Nombre")
-    numero = fields.Integer(string="Número de Talla", required=True)
-
+    name = fields.Char(string="Nombre", required=True)
+    numero = fields.Char(string="Numero", required=True) 
+ 
 class ProductExtensionWizard(models.TransientModel):
     _name = 'product.wizard'
-    _description = 'impresion de Etiquetas para Productos'
+    _description = 'Impresión de Etiquetas para Productos'
 
-    codigo = fields.Many2one('product.codigo', string="Código")
-    numeracion = fields.Many2one('cl.product.numeracion', string="Numeración")
+    codigo_corto = fields.Char(string="Código Corto",compute="_compute_codigo_corto", store=True)
+    codigo_largo = fields.Char(string="Código Largo", compute="_compute_codigo_largo", store=True)
+
+    codigo = fields.Many2one('product.template', string="Codigo", required=False, domain=[('cl_long_model', '!=', False)], ondelete='set null', tracking=True,)
+    numeracion = fields.Many2one('cl.product.numeraciones', string="Numeración", ondelete='set null', required=False, tracking=True,)
+    color = fields.Char(string="Color", compute="_compute_color", store=True)
+
+    @api.depends('codigo')
+    def _compute_color(self):
+        for record in self:
+            if record.codigo and record.codigo.cl_long_model:
+                record.color = record.codigo.cl_long_model[-2:]
+            else:
+                record.color = ''
+
     cantidad = fields.Integer(string="Cantidad", default=0)
     pdf_file = fields.Binary(string="PDF de Etiqueta", readonly=True)
     pdf_filename = fields.Char(string="Nombre del Archivo")
-    
+
     zpl_format = fields.Selection(
-        selection=[
+       selection=[
             ('format1', 'Formato 1'),
             ('format2', 'Formato 2'),
             ('format3', 'Formato 3'),
@@ -40,34 +66,54 @@ class ProductExtensionWizard(models.TransientModel):
         required=True
     )
 
-    @api.constrains('zpl_format', 'codigo', 'numeracion')
+
+    @api.depends('codigo')
+    def _compute_codigo_corto(self):
+        for record in self:
+            record.codigo_corto = record.codigo.cl_short_model if record.codigo else ''
+        else:
+            record.codigo_corto = ''
+
+    @api.constrains('zpl_format', 'codigo', 'numeracion', 'cantidad')
     def _check_required_fields(self):
         for record in self:
-            if record.zpl_format in ['format1', 'format2'] and not record.codigo:
+            if record.zpl_format == 'format1' and not record.codigo:
                 raise ValidationError(_("El campo Codigo es requerido para el formato seleccionado"))
-            if record.zpl_format in ['format2', 'format3'] and not record.numeracion:
+            if record.zpl_format == 'format2' and not record.numeracion:
                 raise ValidationError(_("El campo Numeracion es requerido para el formato seleccionado"))
-
+            if record.zpl_format == 'format3':
+                if not record.codigo:
+                    raise ValidationError(_("El campo Codigo es requerido para el formato seleccionado"))
+                if not record.numeracion:
+                    raise ValidationError(_("El campo Numeracion es requerido para el formato seleccionado"))
+                if record.cantidad <= 0:
+                    raise ValidationError(_("La cantidad debe ser mayor a cero"))
+            
     def generate_zpl_label(self):
         self.ensure_one()
         
-        # Validación de campos requeridos
         if not self._context.get('bypass_validation'):
             self._check_required_fields()
 
         codigo = self.codigo.name if self.codigo else ''
-        numeracion = self.numeracion.name if self.numeracion else ''
+        numeracion = self.numeracion.numero if self.numeracion else ''
         cantidad = self.cantidad
+        color = self.color
+        codigo_corto = self.codigo.cl_short_model if self.codigo else ''
+        codigo_largo = self.codigo.cl_long_model if self.codigo else ''
+    
 
         format_templates = {
             'format1': """
                 ^XA         
                 ^FO50,170
                 ^A0N,40,40
-                ^FDCantidad: {cantidad}^FS
+                ^FDCantidad:
+                ^FS
                 ^FO50,230
                 ^B3N,N,100,Y,N
-                ^FD>: {codigo}^FS
+                ^FD>:
+                ^FS
                 ^XZ
             """,
             'format2': """
@@ -119,56 +165,40 @@ class ProductExtensionWizard(models.TransientModel):
             """,
             'format3': """
                 ^XA
-                ^FX 
-                ^CF0,50
-                ^FX
-                ^FO90,40^FD
-                BLUE                
-                ^FS
-                ^FX
-                ^LRY
-                ^FO290,20^GB290,90,90^FS
-                ^CF0,90 ^FX
-                ^FO340,30^FD
-                179H                               
-                ^FS
-                ^FX 
-                ^BY2,3,,^FO110,123^BCN,80,N,N,N^FD
-                179HASUC3600A0035E       
-                ^FS
-                ^FX SKU.
-                ^FO160,210^A0N,30,40^FD
-                179HASUC3600A0035E      
-                ^FS
-                ^XZ
-                ^XA
-                ^FX 
-                ^CF0,50
-                ^FX 
-                ^FO90,40^FD
-                BLUE
-                ^FS
-                ^FX
-                ^LRY
-                ^FO290,20^GB290,90,90^FS
-                ^CF0,90 ^FX
-                ^FO340,30^FD
-                179H
-                ^FS
-                ^FX 
-                ^BY2,3,,^FO110,123^BCN,80,N,N,N^FD
-                179HASUC3600A0035E
-                ^FS
-                ^FX SKU.
-                ^FO160,210^A0N,30,40^FD
-                179HASUC3600A0035E
-                ^FS
-                ^XZ
+^FX tamaño letra.
+^CF0,50
+^FX posición y texto.
+^FO90,40^FD
+{color}
+^FS
+^FX inicio color invertido.
+^LRY
+^FO290,20^GB290,90,90^FS
+^CF0,70 ^FX tamaño texto codigo corto.
+^FO290,30^FD
+{codigo_corto}
+^FS
+^FX codigo de barra 80 altura codigo.
+^BY2,3,,^FO110,123^BCN,80,N,N,N^FD
+{codigo_largo}{numeracion}
+^FS
+^FX SKU.
+^FO160,210^A0N,30,40^FD
+{codigo_largo}{numeracion}
+^FS
+^XZ
             """
         }
 
         zpl = format_templates.get(self.zpl_format, "").strip()
-        return zpl.format(numeracion=numeracion, codigo=codigo, cantidad=cantidad)
+        return zpl.format(
+            numeracion=numeracion, 
+            codigo=codigo, 
+            cantidad=cantidad,
+            codigo_corto=codigo_corto,
+            codigo_largo=codigo_largo,
+            color=color
+        )
 
     def generate_pdf_from_zpl(self):
         self.ensure_one()
