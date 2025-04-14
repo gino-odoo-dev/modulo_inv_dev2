@@ -35,25 +35,15 @@ class Numeracion(models.Model):
 class ProductExtensionWizard(models.TransientModel):
     _name = 'product.wizard'
     _description = 'Impresión de Etiquetas para Productos'
+    pdf_file = fields.Binary(string="PDF de Etiqueta", readonly=True)
+    pdf_filename = fields.Char(string="Nombre del Archivo")
 
     codigo_corto = fields.Char(string="Código Corto",compute="_compute_codigo_corto", store=True)
     codigo_largo = fields.Char(string="Código Largo", compute="_compute_codigo_largo", store=True)
-
     codigo = fields.Many2one('product.template', string="Codigo", required=False, domain=[('cl_long_model', '!=', False)], ondelete='set null', tracking=True,)
     numeracion = fields.Many2one('cl.product.numeraciones', string="Numeración", ondelete='set null', required=False, tracking=True,)
     color = fields.Char(string="Color", compute="_compute_color", store=True)
-
-    @api.depends('codigo')
-    def _compute_color(self):
-        for record in self:
-            if record.codigo and record.codigo.cl_long_model:
-                record.color = record.codigo.cl_long_model[-2:]
-            else:
-                record.color = ''
-
     cantidad = fields.Integer(string="Cantidad", default=0)
-    pdf_file = fields.Binary(string="PDF de Etiqueta", readonly=True)
-    pdf_filename = fields.Char(string="Nombre del Archivo")
 
     zpl_format = fields.Selection(
        selection=[
@@ -66,6 +56,13 @@ class ProductExtensionWizard(models.TransientModel):
         required=True
     )
 
+    @api.depends('codigo')
+    def _compute_color(self):
+        for record in self:
+            if record.codigo and record.codigo.cl_long_model:
+                record.color = record.codigo.cl_long_model[-2:]
+            else:
+                record.color = ''
 
     @api.depends('codigo')
     def _compute_codigo_corto(self):
@@ -165,20 +162,20 @@ class ProductExtensionWizard(models.TransientModel):
             """,
             'format3': """
                 ^XA
-^FX tamaño letra.
+^FX 
 ^CF0,50
-^FX posición y texto.
+^FX 
 ^FO90,40^FD
 {color}
 ^FS
-^FX inicio color invertido.
+^FX 
 ^LRY
 ^FO290,20^GB290,90,90^FS
-^CF0,70 ^FX tamaño texto codigo corto.
+^CF0,70 ^FX 
 ^FO290,30^FD
 {codigo_corto}
 ^FS
-^FX codigo de barra 80 altura codigo.
+^FX 
 ^BY2,3,,^FO110,123^BCN,80,N,N,N^FD
 {codigo_largo}{numeracion}
 ^FS
@@ -200,35 +197,26 @@ class ProductExtensionWizard(models.TransientModel):
             color=color
         )
 
-    def generate_pdf_from_zpl(self):
+    def generador_txt_zpl(self):
         self.ensure_one()
         
         try:
             zpl = self.generate_zpl_label()
             if not zpl:
-                raise UserError(_("Formato de etiqueta no válido"))
+                raise UserError(_("Formato de etiqueta no valido"))
 
-            url = 'http://api.labelary.com/v1/printers/8dpmm/labels/4x6/0/'
-            headers = {'Accept': 'application/pdf'}
-            files = {'file': zpl.encode('utf-8')}
+            filename = f"{self.codigo.cl_long_model if self.codigo else 'EtiquetaZPL'}.txt"
+            txt_content = base64.b64encode(zpl.encode('utf-8'))
 
-            response = requests.post(url, headers=headers, files=files, stream=True, timeout=10)
+            self.write({
+                'pdf_file': txt_content,
+                'pdf_filename': filename
+            })
 
-            if response.status_code == 200:
-                pdf_content = base64.b64encode(response.content)
-                filename = f"Etiqueta_{self.codigo.name if self.codigo else ''}_{self.numeracion.name if self.numeracion else ''}.pdf"
-                
-                self.write({
-                    'pdf_file': pdf_content,
-                    'pdf_filename': filename
-                })
-
-                return {
-                    'type': 'ir.actions.act_url',
-                    'url': f"/web/content?model=product.wizard&id={self.id}&field=pdf_file&filename_field=pdf_filename&download=true",
-                    'target': 'self',
-                }
-            else:
-                raise UserError(_("Error al generar el PDF: %s") % response.text)
-        except requests.exceptions.RequestException as e:
-            raise UserError(_("Error de conexión: %s") % str(e))
+            return {
+                'type': 'ir.actions.act_url',
+                'url': f"/web/content?model=product.wizard&id={self.id}&field=pdf_file&filename_field=pdf_filename&download=true",
+                'target': 'self',
+            }
+        except Exception as e:
+            raise UserError(_("Error: %s") % str(e))

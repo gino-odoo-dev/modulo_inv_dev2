@@ -18,7 +18,7 @@
                         </group>
                         <footer>
                             <button string="Cancelar" class="btn-secondary" special="cancel"/>
-                            <button string="Generar PDF" type="object" name="generate_pdf_from_zpl" class="btn-primary"/>
+                            <button string="Generar txt" type="object" name="generador_txt_zpl" class="btn-success"/>
                         </footer>
                         <group>
                             <field name="pdf_file" invisible="1"/>
@@ -37,8 +37,8 @@
         </record>
         <menuitem id="menu_product_wizard" 
                  name="Generar Etiqueta" 
-                 parent="stock.menu_stock_root" 
+                 parent="stock.menu_stock_inventory_control" 
                  action="action_product_wizard" 
-                 sequence="25"/>
+                 sequence="10"/>
     </data>
 </odoo>
