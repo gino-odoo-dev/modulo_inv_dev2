@@ -1,6 +1,5 @@
 <odoo>
     <data>
-        <!-- Vista del formulario -->
         <record id="view_product_wizard_form" model="ir.ui.view">
             <field name="name">product.wizard.form</field>
             <field name="model">product.wizard</field>
@@ -9,16 +8,13 @@
                     <sheet>
                         <group>
                             <field name="zpl_format" widget="selection" string="Formato de Etiqueta" class="my_custom_width"/>                                       
-                            <field name="codigo" string="Articulo" required="1" class="my_custom_width" 
-                                   invisible="not (zpl_format == 'format1' or zpl_format == 'format3')"/>
-                            <field name="numeracion" string="Nro Zapato" required="1" class="my_custom_width" 
-                                   invisible="not (zpl_format == 'format2' or zpl_format == 'format3')"/>
-                            <field name="cantidad" string="Cantidad" required="1" class="my_custom_width" 
-                                   invisible="zpl_format != 'format3'"/>
+                            <field name="codigo" string="Articulo" required="1" class="my_custom_width" invisible="not (zpl_format == 'format1' or zpl_format == 'format3')"/>
+                            <field name="numeracion" string="Nro Zapato" required="1" class="my_custom_width" invisible="not (zpl_format == 'format2' or zpl_format == 'format3')"/>
+                            <field name="cantidad" string="Cantidad" required="1" class="my_custom_width" invisible="zpl_format != 'format3'"/>
                         </group>
                         <footer>
                             <button string="Cancelar" class="btn-secondary" special="cancel"/>
-                            <button string="Generar txt" type="object" name="generador_txt_zpl" class="btn-success"/>
+                            <button string="Generar txt" type="object" name="generador_txt_zpl" class="btn-primary"/>
                         </footer>
                         <group>
                             <field name="pdf_file" invisible="1"/>
@@ -35,10 +31,6 @@
             <field name="view_id" ref="view_product_wizard_form"/>
             <field name="target">new</field>
         </record>
-        <menuitem id="menu_product_wizard" 
-                 name="Generar Etiqueta" 
-                 parent="stock.menu_stock_inventory_control" 
-                 action="action_product_wizard" 
-                 sequence="10"/>
+        <menuitem id="menu_product_wizard" name="Generar Etiqueta" parent="stock.menu_stock_inventory_control" action="action_product_wizard" sequence="10"/>
     </data>
 </odoo>

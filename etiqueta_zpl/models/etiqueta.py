@@ -5,32 +5,6 @@ import requests
 import base64
 
 _logger = logging.getLogger(__name__)
-
-class Codigo(models.Model):
-    _inherit = 'product.template' 
-    _description = 'Código de Producto'
-    _order = 'id asc'
-    
-    cl_long_model = fields.Char(string="Código Largo", required=True)
-    cl_short_model = fields.Char(string="Código Corto", required=True)
-    
-    @api.depends('cl_long_model')
-    def _compute_display_name(self):
-        for record in self:
-            record.display_name = record.cl_long_model or 'Nuevo Producto'
-
-    @api.depends('cl_short_model')
-    def _compute_display_name_short(self):
-        for record in self:
-            record.display_name_short = record.cl_short_model or 'Nuevo Producto Corto'
-
-class Numeracion(models.Model):
-    _name = 'cl.product.numeraciones'
-    _description = 'Numeración de Productos'
-    _order = 'id asc'
-
-    name = fields.Char(string="Nombre", required=True)
-    numero = fields.Char(string="Numero", required=True) 
  
 class ProductExtensionWizard(models.TransientModel):
     _name = 'product.wizard'
@@ -38,10 +12,10 @@ class ProductExtensionWizard(models.TransientModel):
     pdf_file = fields.Binary(string="PDF de Etiqueta", readonly=True)
     pdf_filename = fields.Char(string="Nombre del Archivo")
 
-    codigo_corto = fields.Char(string="Código Corto",compute="_compute_codigo_corto", store=True)
-    codigo_largo = fields.Char(string="Código Largo", compute="_compute_codigo_largo", store=True)
+    codigo_corto = fields.Char(string="Codigo Corto", store=True)
+    codigo_largo = fields.Char(string="Codigo Largo", store=True)
     codigo = fields.Many2one('product.template', string="Codigo", required=False, domain=[('cl_long_model', '!=', False)], ondelete='set null', tracking=True,)
-    numeracion = fields.Many2one('cl.product.numeraciones', string="Numeración", ondelete='set null', required=False, tracking=True,)
+    numeracion = fields.Many2one('cl.product.numeraciones', string="Numeracion", ondelete='set null', required=False, tracking=True,)
     color = fields.Char(string="Color", compute="_compute_color", store=True)
     cantidad = fields.Integer(string="Cantidad", default=0)
 
@@ -63,13 +37,6 @@ class ProductExtensionWizard(models.TransientModel):
                 record.color = record.codigo.cl_long_model[-2:]
             else:
                 record.color = ''
-
-    @api.depends('codigo')
-    def _compute_codigo_corto(self):
-        for record in self:
-            record.codigo_corto = record.codigo.cl_short_model if record.codigo else ''
-        else:
-            record.codigo_corto = ''
 
     @api.constrains('zpl_format', 'codigo', 'numeracion', 'cantidad')
     def _check_required_fields(self):
@@ -142,7 +109,7 @@ class ProductExtensionWizard(models.TransientModel):
                 ^FO550,320^A0R,50,50^FDFABRICA DE CALZADOS GINO SA ^FS
                 ^FO500,320^A0R,50,50^FDAV MIRAFLORES 8860 RENCA^FS
                 ^FO450,320^A0R,50,50^FDNUNOA^FS
-                ^FO400,420^A0R,50,50^FDINV2025^FS
+                ^FO400,320^A0R,50,50^FDINV2025^FS
                 ^FO350,320^A0R,50,50^FDL505AK3AF5CLK05 MING^FS
                 ^FO305,320^A0R,40,40^FDKENT.^FS
                 ^FO255,320^A0R,40,40^FDTANINO.^FS
