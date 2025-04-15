@@ -1,4 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_product_template,product.template.access,model_product_template,base.group_user,1,1,1,1
+access_numeracion_model,cl.product.numeraciones.access,model_cl_product_numeraciones,base.group_user,1,1,1,1
 access_product_wizard,product.wizard.access,model_product_wizard,base.group_user,1,1,1,1
-access_numeracion_model,numeracion.model.access,model_numeracion_model,base.group_user,1,1,1,1

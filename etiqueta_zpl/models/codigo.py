@@ -1,12 +1,11 @@
-from odoo import models, fields, api, _
+from odoo import models, fields, api, _ # type: ignore
 
 class Codigo(models.Model):
     _inherit = 'product.template' 
     _description = 'Código de Producto'
-    _order = 'id asc'
     
-    cl_long_model = fields.Char(string="Código Largo", required=True)
-    cl_short_model = fields.Char(string="Código Corto", required=True)
+    cl_long_model = fields.Char(string="Codigo Largo", required=True)
+    cl_short_model = fields.Char(string="Codigo Corto", required=True)
     
     @api.depends('cl_long_model')
     def _compute_display_name(self):
