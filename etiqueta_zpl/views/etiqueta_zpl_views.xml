@@ -8,10 +8,10 @@
                     <sheet>
                         <group>
                             <field name="zpl_format" widget="selection" string="Formato de Etiqueta" class="my_custom_width"/>                                       
-                            <field name="codigo" string="Articulo" required="1" class="my_custom_width" invisible="not (zpl_format == 'format1' or zpl_format == 'format3')"/>
-                            <field name="numeracion" string="Nro Zapato" required="1" class="my_custom_width" invisible="not (zpl_format == 'format2' or zpl_format == 'format3')"/>
+                            <field name="codigo_largo" string="Articulo" required="1" class="my_custom_width" invisible="not (zpl_format == 'format1' or zpl_format == 'format2' or zpl_format == 'format3')"/>
+                            <field name="numeracion" string="Nro Zapato" required="1" class="my_custom_width" invisible="not (zpl_format == 'format3')"/>
                             <field name="cantidad" string="Cantidad" required="1" class="my_custom_width"/>
-                            <field name="compañia" string="Compañia" required="1" class="my_custom_width" invisible="not (zpl_format == 'format2')"/>                            
+                            <field name="compañia" string="Compañia" required="1" class="my_custom_width" invisible="not (zpl_format == 'format2')"/>
                         </group>
                         <footer>
                             <button string="Cancelar" class="btn-secondary" special="cancel"/>
